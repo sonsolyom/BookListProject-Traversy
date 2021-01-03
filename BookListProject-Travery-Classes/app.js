@@ -7,6 +7,54 @@ class Book {
   }
 }
 
+//LS class
+class Store {
+
+  static getBooks() {
+   
+    let books;
+    if(localStorage.getItem('books') === null) {
+      books = [];
+    } else {
+      books = JSON.parse(localStorage.getItem('books'));
+    }
+
+    return books
+  };
+  static displayBooks() {
+   
+    const books = Store.getBooks();
+
+    books.forEach(function(book){
+      
+      const ui = new UI;
+
+      //Add book to UI
+      ui.addBookToList(book);
+    });
+  };
+  static addBook(book) {
+    
+    const books = Store.getBooks();
+
+    books.push(book);
+
+    localStorage.setItem('books', JSON.stringify(books));
+  };
+  static removeBook(isbn){
+
+    const books = Store.getBooks();
+
+    books.forEach(function(book, index){
+      if(book.isbn === isbn){
+        books.splice(index, 1);
+      }
+    });
+
+    localStorage.setItem('books', JSON.stringify(books));
+  };
+}
+
 class UI {
 
   addBookToList(book){
@@ -47,8 +95,10 @@ class UI {
   };
   deleteBook(target){
 
-    if(target.className === 'delete'){
+    const ui = new UI;
+    if(target.classList.contains('delete')){
       target.parentElement.parentElement.remove();
+      ui.showAlert('Book Removed!', 'success');
     }
   };
   clearFields(){
@@ -58,6 +108,9 @@ class UI {
     document.getElementById('isbn').value = '';
   };
 }
+
+//DOM load event
+document.addEventListener('DOMContentLoaded', Store.displayBooks);
 
 //Event listeners for add book
 document.getElementById('book-form').addEventListener('submit', (e)=>{
@@ -80,6 +133,8 @@ document.getElementById('book-form').addEventListener('submit', (e)=>{
 
     //Add book to list
     ui.addBookToList(book);
+    //Add to LS
+    Store.addBook(book);
     //Show success
     ui.showAlert('Book Added', 'success');
     //Clear fields
@@ -98,8 +153,10 @@ document.getElementById('book-list').addEventListener('click', function(e){
 
   //Delete book
   ui.deleteBook(e.target);
-  //Show message
-  ui.showAlert('Book Removed!', 'success');
+  
+  //Remove from LS
+  Store.removeBook(e.target.parentElement.previousElementSibling.textContent);
+  
 
   e.preventDefault();
 });
